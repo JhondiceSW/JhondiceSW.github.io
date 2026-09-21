@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento y Control de Actividades - FET</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        fet: {
+                            green: '#005C29',
+                            darkgreen: '#003A19',
+                            lightgreen: '#00853B',
+                            yellow: '#EDBB00',
+                            accent: '#22C55E',
+                            bg: '#F3F4F6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .tab-active {
+            background-color: #005C29 !important;
+            color: #ffffff !important;
+            border-bottom: 3px solid #EDBB00;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+        /* Custom scrollbar for clean table viewing */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 flex flex-col min-h-screen">
+
+    <!-- INSTITUTIONAL HEADER -->
+    <header class="bg-gradient-to-r from-fet-darkgreen via-fet-green to-slate-900 text-white shadow-lg relative overflow-hidden">
+        <!-- Tech circuits watermark background -->
+        <div class="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none flex items-center pr-10">
+            <i data-lucide="cpu" class="w-96 h-96 text-white"></i>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                
+                <!-- Logo & Brand Title -->
+                <div class="flex items-center space-x-4">
+                    <div class="bg-white p-2 rounded-xl shadow-md border-2 border-fet-yellow flex items-center space-x-2">
+                        <div class="bg-fet-green text-white font-extrabold px-3 py-1 rounded text-xl tracking-tight">FET</div>
+                        <div class="text-left border-l pl-2 border-slate-300">
+                            <p class="text-[9px] font-bold text-fet-darkgreen leading-tight">FUNDACIÓN ESCUELA</p>
+                            <p class="text-[9px] font-bold text-fet-darkgreen leading-tight">TECNOLÓGICA DE NEIVA</p>
+                            <p class="text-[8px] text-slate-500 font-semibold leading-tight">JESÚS OVIEDO PÉREZ</p>
+                        </div>
+                        <div class="bg-fet-yellow text-fet-darkgreen px-2 py-1 rounded font-black text-xs tracking-wider transform rotate-1">
+                            #YoSoyFET
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-black tracking-wide uppercase text-white drop-shadow">
+                            SEGUIMIENTO Y CONTROL DE ACTIVIDADES
+                        </h1>
+                        <p class="text-xs sm:text-sm text-yellow-300 font-medium">
+                            PLAN DE TRABAJO DOCENTE <span class="font-bold underline" id="headerPeriodText">2026-2</span>
+                        </p>
+                        <p class="text-[11px] text-slate-200 italic hidden sm:block">
+                            Comprometidos con la educación, la tecnología y el desarrollo del talento humano
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right Side Info & Controls -->
+                <div class="flex flex-wrap items-center gap-3 justify-end text-xs">
+                    <div class="hidden lg:flex items-center gap-2 bg-white/10 backdrop-blur px-3 py-1.5 rounded-lg border border-white/20">
+                        <i data-lucide="code" class="w-5 h-5 text-fet-yellow"></i>
+                        <span class="font-semibold text-yellow-200">Tecnología que transforma vidas</span>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur px-3 py-2 rounded-lg border border-white/20 flex items-center gap-2">
+                        <label for="periodSelect" class="font-medium text-slate-200">Periodo:</label>
+                        <select id="periodSelect" onchange="updatePeriod(this.value)" class="bg-slate-800 text-yellow-300 font-bold rounded px-2 py-0.5 border border-yellow-500 focus:outline-none">
+                            <option value="2026-2" selected>2026-2</option>
+                            <option value="2026-1">2026-1</option>
+                            <option value="2025-2">2025-2</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur px-3 py-2 rounded-lg border border-white/20 text-right">
+                        <p class="text-[10px] text-slate-300">Fecha de actualización</p>
+                        <p class="font-bold text-white" id="lastUpdateDate">19/09/2026</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS BAR -->
+    <nav class="bg-slate-800 text-slate-300 shadow-md sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+            <div class="flex overflow-x-auto space-x-1 py-1 scrollbar-none" id="tabsNav">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn tab-active flex items-center gap-2 px-4 py-2.5 rounded-t-lg font-semibold text-xs sm:text-sm whitespace-nowrap transition-all hover:bg-slate-700">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+                </button>
+                <button onclick="switchTab('plan')" id="tab-plan" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-t-lg font-semibold text-xs sm:text-sm whitespace-nowrap transition-all hover:bg-slate-700">
+                    <i data-lucide="list-checks" class="w-4 h-4"></i> Plan de Actividades
+                </button>
+                <button onclick="switchTab('informe')" id="tab-informe" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-t-lg font-semibold text-xs sm:text-sm whitespace-nowrap transition-all hover:bg-slate-700">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Informe de Avance
+                </button>
+                <button onclick="switchTab('calendario')" id="tab-calendario" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-t-lg font-semibold text-xs sm:text-sm whitespace-nowrap transition-all hover:bg-slate-700">
+                    <i data-lucide="calendar" class="w-4 h-4"></i> Calendario
+                </button>
+                <button onclick="switchTab('indicadores')" id="tab-indicadores" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-t-lg font-semibold text-xs sm:text-sm whitespace-nowrap transition-all hover:bg-slate-700">
+                    <i data-lucide="line-chart" class="w-4 h-4"></i> Indicadores
+                </button>
+                <button onclick="switchTab('reportes')" id="tab-reportes" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-t-lg font-semibold text-xs sm:text-sm whitespace-nowrap transition-all hover:bg-slate-700">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Reportes
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6">
+
+        <!-- ================= TAB 1: DASHBOARD ================= -->
+        <div id="view-dashboard" class="tab-content space-y-6">
+            
+            <!-- STATS KPIS TOP ROW -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+                <!-- Programadas -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-slate-600 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Programadas</p>
+                        <h3 class="text-2xl font-black text-slate-800" id="dashProgCount">23</h3>
+                        <p class="text-[10px] text-slate-400">Total planificado</p>
+                    </div>
+                    <div class="p-2.5 bg-slate-100 text-slate-600 rounded-lg">
+                        <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- En desarrollo -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">En desarrollo</p>
+                        <h3 class="text-2xl font-black text-blue-600" id="dashDevCount">15</h3>
+                        <p class="text-[10px] text-slate-400">Ejecución activa</p>
+                    </div>
+                    <div class="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+                        <i data-lucide="cog" class="w-6 h-6 animate-spin-slow"></i>
+                    </div>
+                </div>
+
+                <!-- Completadas -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-500 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Completadas</p>
+                        <h3 class="text-2xl font-black text-emerald-600" id="dashDoneCount">6</h3>
+                        <p class="text-[10px] text-slate-400">Finalizadas 100%</p>
+                    </div>
+                    <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
+                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Pendientes -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Pendientes</p>
+                        <h3 class="text-2xl font-black text-amber-600" id="dashPendCount">2</h3>
+                        <p class="text-[10px] text-slate-400">Por iniciar</p>
+                    </div>
+                    <div class="p-2.5 bg-amber-50 text-amber-600 rounded-lg">
+                        <i data-lucide="clock" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Atrasadas -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-rose-500 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Atrasadas</p>
+                        <h3 class="text-2xl font-black text-rose-600" id="dashDelayCount">0</h3>
+                        <p class="text-[10px] text-slate-400">Fuera de fecha</p>
+                    </div>
+                    <div class="p-2.5 bg-rose-50 text-rose-600 rounded-lg">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Avance General Widget (Circular Donut) -->
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-emerald-100 flex flex-col items-center justify-center relative">
+                    <p class="text-[11px] font-bold text-slate-600 text-center uppercase leading-tight mb-1">Avance general del plan</p>
+                    <div class="w-16 h-16 relative flex items-center justify-center">
+                        <canvas id="dashOverallGauge"></canvas>
+                        <span class="absolute text-sm font-extrabold text-fet-darkgreen" id="dashOverallPercent">65%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRAPHICS & UPCOMING ACTIVITIES GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Chart 1: Estado de las actividades -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                        <div class="w-1 h-4 bg-fet-green rounded"></div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Estado de las Actividades</h4>
+                    </div>
+                    <div class="h-48 relative">
+                        <canvas id="chartEstadoActividades"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Distribución por tipo de actividad -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                        <div class="w-1 h-4 bg-fet-green rounded"></div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Distribución por Tipo</h4>
+                    </div>
+                    <div class="h-48 relative">
+                        <canvas id="chartTipoActividad"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Avance por línea estratégica -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                        <div class="w-1 h-4 bg-fet-green rounded"></div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Avance por Línea Estratégica</h4>
+                    </div>
+                    <div class="h-48 relative">
+                        <canvas id="chartLineaEstrategica"></canvas>
+                    </div>
+                </div>
+
+                <!-- Widget 4: Próximas Actividades Table -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                            <div class="w-1 h-4 bg-fet-green rounded"></div>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Próximas Actividades</h4>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead>
+                                    <tr class="bg-fet-green text-white text-[10px] uppercase">
+                                        <th class="p-1.5 rounded-l">Fecha</th>
+                                        <th class="p-1.5">Actividad</th>
+                                        <th class="p-1.5 text-center rounded-r">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100" id="upcomingTableBody">
+                                    <!-- Dynamic rows inserted via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('calendario')" class="mt-2 w-full py-1 text-center text-xs text-fet-green font-semibold hover:underline flex items-center justify-center gap-1">
+                        Ver calendario completo <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- DASHBOARD SECTION: PLAN DE ACTIVIDADES TABLE SUMMARY -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 px-4 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="table" class="w-5 h-5 text-fet-green"></i>
+                        <h3 class="font-bold text-slate-800 text-sm uppercase">PLAN DE ACTIVIDADES <span id="dashTablePeriodLabel">2026-2</span></h3>
+                    </div>
+                    <button onclick="switchTab('plan')" class="text-xs font-semibold bg-fet-green hover:bg-fet-darkgreen text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Gestionar Plan Completo
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left border-collapse">
+                        <thead>
+                            <tr class="bg-fet-green text-white text-[11px] font-semibold uppercase tracking-wider">
+                                <th class="py-2.5 px-3 text-center w-12 border-r border-emerald-700">N°</th>
+                                <th class="py-2.5 px-3 border-r border-emerald-700">Actividad</th>
+                                <th class="py-2.5 px-3 border-r border-emerald-700">Tipo</th>
+                                <th class="py-2.5 px-3 border-r border-emerald-700">Responsable</th>
+                                <th class="py-2.5 px-3 border-r border-emerald-700">Fecha inicio</th>
+                                <th class="py-2.5 px-3 border-r border-emerald-700">Fecha fin</th>
+                                <th class="py-2.5 px-3 text-center border-r border-emerald-700">% Avance</th>
+                                <th class="py-2.5 px-3 text-center border-r border-emerald-700">Estado</th>
+                                <th class="py-2.5 px-3">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200" id="dashboardPlanTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- DASHBOARD SECTION: INFORME DE AVANCE POR ACTIVIDAD QUICK FORM -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center gap-2">
+                    <i data-lucide="file-edit" class="w-5 h-5 text-fet-green"></i>
+                    <h3 class="font-bold text-slate-800 text-sm uppercase">INFORME DE AVANCE POR ACTIVIDAD</h3>
+                </div>
+
+                <div class="p-4 sm:p-6 space-y-4">
+                    <!-- Form Row 1: Select activity, Title, Date, Responsible -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+                        <div class="lg:col-span-2">
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Actividad N°:</label>
+                            <select id="quickReportActId" onchange="autoFillQuickReport(this.value)" class="w-full text-xs p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green focus:border-fet-green bg-slate-50 font-semibold text-slate-800">
+                                <!-- Options populated via JS -->
+                            </select>
+                        </div>
+                        <div class="lg:col-span-5">
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Título:</label>
+                            <input type="text" id="quickReportTitle" readonly class="w-full text-xs p-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-700 font-medium" placeholder="Seleccione una actividad...">
+                        </div>
+                        <div class="lg:col-span-2">
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Fecha de reporte:</label>
+                            <input type="date" id="quickReportDate" class="w-full text-xs p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green text-slate-700">
+                        </div>
+                        <div class="lg:col-span-3">
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Responsable:</label>
+                            <input type="text" id="quickReportResponsible" readonly class="w-full text-xs p-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-700 font-medium" placeholder="Docente / Responsable">
+                        </div>
+                    </div>
+
+                    <!-- Form Row 2: Textareas for Avance and Dificultades -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Avance realizado:</label>
+                            <textarea id="quickReportAvanceText" rows="3" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green text-slate-700 placeholder-slate-400" placeholder="Describa el avance alcanzado en la actividad..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Dificultades:</label>
+                            <textarea id="quickReportDiffText" rows="3" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green text-slate-700 placeholder-slate-400" placeholder="Indique las dificultades encontradas..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Row 3: Textareas for Resultados y Acciones -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Resultados obtenidos:</label>
+                            <textarea id="quickReportResText" rows="3" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green text-slate-700 placeholder-slate-400" placeholder="Describa los resultados alcanzados..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Acciones siguientes:</label>
+                            <textarea id="quickReportNextText" rows="3" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green text-slate-700 placeholder-slate-400" placeholder="Defina las acciones para continuar..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Row 4: Metrics and Save Button -->
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex flex-wrap items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs font-bold text-slate-700">% Avance actual:</label>
+                                <input type="number" min="0" max="100" id="quickReportPercent" class="w-20 text-xs p-1.5 rounded border border-slate-300 font-bold text-center text-fet-green focus:ring-2 focus:ring-fet-green">
+                                <span class="text-xs font-bold text-slate-500">%</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs font-bold text-slate-700">Estado:</label>
+                                <select id="quickReportStatus" class="text-xs p-1.5 rounded border border-slate-300 font-semibold focus:ring-2 focus:ring-fet-green">
+                                    <option value="Programada">Programada</option>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="En desarrollo">En desarrollo</option>
+                                    <option value="Completada">Completada</option>
+                                    <option value="Atrasada">Atrasada</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs font-bold text-slate-700">Fecha próxima revisión:</label>
+                                <input type="date" id="quickReportNextDate" class="text-xs p-1.5 rounded border border-slate-300 focus:ring-2 focus:ring-fet-green">
+                            </div>
+                        </div>
+
+                        <button onclick="saveQuickReport()" class="bg-fet-green hover:bg-fet-darkgreen text-white text-xs font-bold px-5 py-2 rounded-lg transition shadow-md flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Guardar Informe de Avance
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= TAB 2: PLAN DE ACTIVIDADES ================= -->
+        <div id="view-plan" class="tab-content hidden space-y-4">
+            
+            <!-- Controls & Filter Toolbar -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2 flex-grow">
+                    <!-- Search input -->
+                    <div class="relative min-w-[200px] flex-grow sm:flex-grow-0">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-2.5 top-2.5 text-slate-400"></i>
+                        <input type="text" id="searchPlanInput" oninput="renderFullPlanTable()" placeholder="Buscar actividad..." class="w-full text-xs pl-8 pr-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-fet-green">
+                    </div>
+
+                    <!-- Filter by Type -->
+                    <select id="filterType" onchange="renderFullPlanTable()" class="text-xs p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green">
+                        <option value="ALL">Todos los Tipos</option>
+                        <option value="Académica">Académica</option>
+                        <option value="Investigación">Investigación</option>
+                        <option value="Administrativa">Administrativa</option>
+                        <option value="Proyección social">Proyección social</option>
+                        <option value="Capacitación">Capacitación</option>
+                    </select>
+
+                    <!-- Filter by Status -->
+                    <select id="filterStatus" onchange="renderFullPlanTable()" class="text-xs p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green">
+                        <option value="ALL">Todos los Estados</option>
+                        <option value="Completada">Completada</option>
+                        <option value="En desarrollo">En desarrollo</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Programada">Programada</option>
+                        <option value="Atrasada">Atrasada</option>
+                    </select>
+                </div>
+
+                <!-- Actions: Add & Export -->
+                <div class="flex items-center gap-2">
+                    <button onclick="exportPlanCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-300 transition flex items-center gap-1">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar CSV
+                    </button>
+                    <button onclick="openActivityModal()" class="bg-fet-green hover:bg-fet-darkgreen text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow-md flex items-center gap-1.5">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Nueva Actividad
+                    </button>
+                </div>
+            </div>
+
+            <!-- Full Activities Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left border-collapse">
+                        <thead>
+                            <tr class="bg-fet-green text-white text-[11px] font-semibold uppercase tracking-wider">
+                                <th class="py-3 px-3 text-center w-12 border-r border-emerald-700">N°</th>
+                                <th class="py-3 px-3 border-r border-emerald-700 min-w-[200px]">Actividad</th>
+                                <th class="py-3 px-3 border-r border-emerald-700">Línea Estratégica</th>
+                                <th class="py-3 px-3 border-r border-emerald-700">Tipo</th>
+                                <th class="py-3 px-3 border-r border-emerald-700">Responsable</th>
+                                <th class="py-3 px-3 border-r border-emerald-700">Fecha Inicio</th>
+                                <th class="py-3 px-3 border-r border-emerald-700">Fecha Fin</th>
+                                <th class="py-3 px-3 text-center border-r border-emerald-700 w-32">% Avance</th>
+                                <th class="py-3 px-3 text-center border-r border-emerald-700">Estado</th>
+                                <th class="py-3 px-3 border-r border-emerald-700">Observaciones</th>
+                                <th class="py-3 px-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200" id="fullPlanTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: INFORME DE AVANCE ================= -->
+        <div id="view-informe" class="tab-content hidden space-y-6">
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between border-b pb-4 mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-fet-green text-white rounded-xl">
+                            <i data-lucide="file-check-2" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Generación de Informes de Avance</h2>
+                            <p class="text-xs text-slate-500">Consulte y expida el reporte detallado por actividad del Plan de Trabajo Docente</p>
+                        </div>
+                    </div>
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Informe
+                    </button>
+                </div>
+
+                <!-- Select Activity to view full report card -->
+                <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Seleccionar Actividad para Inspección Detallada:</label>
+                    <select id="reportDetailActSelect" onchange="loadReportDetailView(this.value)" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 font-semibold focus:ring-2 focus:ring-fet-green">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <!-- Official Institutional Report Printable Document Box -->
+                <div id="reportPrintArea" class="border border-slate-300 rounded-xl p-6 bg-white shadow-inner space-y-6">
+                    <div class="flex items-center justify-between border-b-2 border-fet-green pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-fet-green text-white px-3 py-1 font-black text-lg rounded">FET</div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-sm">FUNDACIÓN ESCUELA TECNOLÓGICA DE NEIVA "JESÚS OVIEDO PÉREZ"</h3>
+                                <p class="text-xs text-slate-500">FORMATO DE SEGUIMIENTO Y CONTROL - INFORME DETALLADO DE ACTIVIDAD</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-block bg-yellow-100 text-yellow-800 font-bold text-xs px-2.5 py-1 rounded-full border border-yellow-300">
+                                Periodo <span id="repPeriodVal">2026-2</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Report Grid Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <div>
+                            <span class="text-slate-400 block uppercase text-[10px]">Número de Actividad:</span>
+                            <span class="font-bold text-slate-800 text-sm" id="repActNum">#1</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block uppercase text-[10px]">Tipo de Actividad:</span>
+                            <span class="font-bold text-slate-800" id="repActType">Académica</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block uppercase text-[10px]">Responsable:</span>
+                            <span class="font-bold text-slate-800" id="repActResp">Docente</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block uppercase text-[10px]">Estado Actual:</span>
+                            <span class="font-bold text-emerald-600" id="repActStatus">Completada</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-bold uppercase text-slate-500 mb-1">Título de la Actividad:</h4>
+                        <div class="p-3 bg-slate-100 rounded-lg text-xs font-semibold text-slate-800 border" id="repActTitle">
+                            Preparación de sílabos por asignatura
+                        </div>
+                    </div>
+
+                    <!-- 4 Main Report Quadrants -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border rounded-lg p-3 bg-emerald-50/50 border-emerald-200">
+                            <h5 class="text-xs font-bold text-emerald-800 mb-1 flex items-center gap-1.5">
+                                <i data-lucide="check-circle-2" class="w-4 h-4"></i> Avance Realizado:
+                            </h5>
+                            <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap" id="repTextAvance">Sílabos cargados en el campus virtual para todas las asignaturas asignadas.</p>
+                        </div>
+                        <div class="border rounded-lg p-3 bg-amber-50/50 border-amber-200">
+                            <h5 class="text-xs font-bold text-amber-800 mb-1 flex items-center gap-1.5">
+                                <i data-lucide="alert-circle" class="w-4 h-4"></i> Dificultades Encontradas:
+                            </h5>
+                            <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap" id="repTextDiff">Sin novedades relevantes durante el proceso.</p>
+                        </div>
+                        <div class="border rounded-lg p-3 bg-blue-50/50 border-blue-200">
+                            <h5 class="text-xs font-bold text-blue-800 mb-1 flex items-center gap-1.5">
+                                <i data-lucide="award" class="w-4 h-4"></i> Resultados Obtenidos:
+                            </h5>
+                            <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap" id="repTextRes">100% de la planificación del microcurrículo completada y validada.</p>
+                        </div>
+                        <div class="border rounded-lg p-3 bg-purple-50/50 border-purple-200">
+                            <h5 class="text-xs font-bold text-purple-800 mb-1 flex items-center gap-1.5">
+                                <i data-lucide="arrow-right-circle" class="w-4 h-4"></i> Acciones Siguientes:
+                            </h5>
+                            <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap" id="repTextNext">Iniciar la impartición de clases según cronograma institucional.</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress and revision footer bar -->
+                    <div class="flex flex-wrap items-center justify-between p-4 bg-slate-800 text-white rounded-lg text-xs gap-2">
+                        <div class="flex items-center gap-2">
+                            <span>Porcentaje de cumplimiento:</span>
+                            <span class="text-lg font-black text-yellow-400" id="repPercentVal">100%</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span>Fecha del último reporte:</span>
+                            <span class="font-bold text-slate-200" id="repLastDateVal">10/08/2026</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span>Próxima revisión:</span>
+                            <span class="font-bold text-slate-200" id="repNextDateVal">N/A</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= TAB 4: CALENDARIO ================= -->
+        <div id="view-calendario" class="tab-content hidden space-y-4">
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                
+                <!-- Calendar Header controls -->
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-fet-green text-white rounded-xl">
+                            <i data-lucide="calendar" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Calendario Institucional de Actividades</h2>
+                            <p class="text-xs text-slate-500">Cronograma de entregas, revisiones e hitos académicos 2026-2</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeCalendarMonth(-1)" class="p-2 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-600">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <span id="calendarMonthYearLabel" class="text-sm font-bold text-slate-800 w-36 text-center">Agosto 2026</span>
+                        <button onclick="changeCalendarMonth(1)" class="p-2 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-600">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calendar Legend -->
+                <div class="flex flex-wrap items-center gap-4 text-xs mb-4 pb-3 border-b border-slate-100">
+                    <span class="font-bold text-slate-600">Leyenda:</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Completada</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500"></span> En desarrollo</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Pendiente</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500"></span> Atrasada</span>
+                </div>
+
+                <!-- Calendar Grid Container -->
+                <div class="overflow-x-auto">
+                    <div class="min-w-[650px]">
+                        <!-- Days of week -->
+                        <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-600 uppercase bg-slate-100 py-2 rounded-t-lg">
+                            <div>Dom</div>
+                            <div>Lun</div>
+                            <div>Mar</div>
+                            <div>Mié</div>
+                            <div>Jue</div>
+                            <div>Vie</div>
+                            <div>Sáb</div>
+                        </div>
+                        <!-- Days Cells -->
+                        <div class="grid grid-cols-7 gap-1 bg-slate-200 p-1 rounded-b-lg text-xs" id="calendarGrid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= TAB 5: INDICADORES ================= -->
+        <div id="view-indicadores" class="tab-content hidden space-y-6">
+            
+            <!-- Executive KPIs -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Índice de Cumplimiento Global</span>
+                        <i data-lucide="target" class="w-5 h-5 text-fet-green"></i>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-black text-slate-800" id="indCumplimientoVal">65%</span>
+                        <span class="text-xs text-emerald-600 font-bold flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-0.5"></i> Satisfactorio</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
+                        <div class="bg-fet-green h-full rounded-full" style="width: 65%;"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Tasa de Efectividad en Cierre</span>
+                        <i data-lucide="award" class="w-5 h-5 text-blue-600"></i>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-black text-slate-800" id="indEfectividadVal">26%</span>
+                        <span class="text-xs text-slate-500 font-medium">6 de 23 finalizadas</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Medido contra total de actividades planificadas</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Nivel de Riesgo por Atrasos</span>
+                        <i data-lucide="shield-check" class="w-5 h-5 text-emerald-500"></i>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-black text-emerald-600">0%</span>
+                        <span class="text-xs text-emerald-600 font-bold">Riesgo Bajo</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">No se registran actividades en mora crítica</p>
+                </div>
+            </div>
+
+            <!-- Analytics Charts Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Chart: Workload per Responsible -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-bold uppercase text-slate-700 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4 text-fet-green"></i> Distribución de Carga Docente
+                    </h3>
+                    <div class="h-64 relative">
+                        <canvas id="chartWorkload"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart: Monthly Execution Trend -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-bold uppercase text-slate-700 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-fet-green"></i> Tendencia de Ejecución Mensual
+                    </h3>
+                    <div class="h-64 relative">
+                        <canvas id="chartTrend"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= TAB 6: REPORTES ================= -->
+        <div id="view-reportes" class="tab-content hidden space-y-6">
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b">
+                    <div class="p-3 bg-fet-green text-white rounded-xl">
+                        <i data-lucide="sliders" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Generador de Reportes Institucionales</h2>
+                        <p class="text-xs text-slate-500">Configure los criterios para consolidar y exportar la información del Plan Docente</p>
+                    </div>
+                </div>
+
+                <!-- Criteria Form -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Tipo de Reporte:</label>
+                        <select id="reportGenType" class="w-full p-2 rounded border border-slate-300 font-medium">
+                            <option value="consolidado">Consolidado General</option>
+                            <option value="por_tipo">Por Tipo de Actividad</option>
+                            <option value="por_responsable">Por Responsable / Docente</option>
+                            <option value="por_estado">Filtrado por Estado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Docente / Responsable:</label>
+                        <select id="reportGenResp" class="w-full p-2 rounded border border-slate-300 font-medium">
+                            <option value="ALL">Todos los Responsables</option>
+                            <option value="Docente">Docente</option>
+                            <option value="Coordinación">Coordinación</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Estado de avance:</label>
+                        <select id="reportGenStatus" class="w-full p-2 rounded border border-slate-300 font-medium">
+                            <option value="ALL">Todos los Estados</option>
+                            <option value="Completada">Completadas</option>
+                            <option value="En desarrollo">En Desarrollo</option>
+                            <option value="Pendiente">Pendientes</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <button onclick="generateCustomReport()" class="w-full bg-fet-green hover:bg-fet-darkgreen text-white font-bold p-2 rounded transition flex items-center justify-center gap-1 shadow-sm">
+                            <i data-lucide="filter" class="w-3.5 h-3.5"></i> Generar Reporte
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Generated Preview Table -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold uppercase text-slate-700">Vista Previa del Reporte Consolidado</h3>
+                        <div class="flex gap-2">
+                            <button onclick="exportReportCSV()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded border border-slate-300 flex items-center gap-1">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel / CSV
+                            </button>
+                            <button onclick="window.print()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white font-semibold px-3 py-1.5 rounded flex items-center gap-1">
+                                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimir / PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg border border-slate-200">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-800 text-white font-semibold uppercase text-[10px]">
+                                <tr>
+                                    <th class="p-2.5 text-center">N°</th>
+                                    <th class="p-2.5">Actividad</th>
+                                    <th class="p-2.5">Tipo</th>
+                                    <th class="p-2.5">Responsable</th>
+                                    <th class="p-2.5 text-center">% Avance</th>
+                                    <th class="p-2.5 text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200" id="customReportTableBody">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- MODAL: ADD / EDIT ACTIVITY -->
+    <div id="activityModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 transform transition-all">
+            <div class="bg-fet-green px-6 py-4 text-white flex items-center justify-between">
+                <h3 class="font-bold text-base flex items-center gap-2" id="modalTitle">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i> Registrar Nueva Actividad
+                </h3>
+                <button onclick="closeActivityModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+            
+            <form id="activityForm" onsubmit="handleSaveActivity(event)" class="p-6 space-y-4 text-xs">
+                <input type="hidden" id="modalActIndex" value="-1">
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nombre / Descripción de la Actividad *</label>
+                    <input type="text" id="modalActName" required placeholder="Ej. Preparación de sílabos por asignatura" class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Tipo *</label>
+                        <select id="modalActType" required class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green">
+                            <option value="Académica">Académica</option>
+                            <option value="Investigación">Investigación</option>
+                            <option value="Administrativa">Administrativa</option>
+                            <option value="Proyección social">Proyección social</option>
+                            <option value="Capacitación">Capacitación</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Línea Estratégica *</label>
+                        <select id="modalActStrat" required class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green">
+                            <option value="Docencia">Docencia</option>
+                            <option value="Investigación">Investigación</option>
+                            <option value="Extensión">Extensión</option>
+                            <option value="Gestión académica">Gestión académica</option>
+                            <option value="Desarrollo profesoral">Desarrollo profesoral</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Responsable *</label>
+                        <input type="text" id="modalActResp" required placeholder="Ej. Docente" class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Estado *</label>
+                        <select id="modalActStatus" required class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green">
+                            <option value="Programada">Programada</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En desarrollo">En desarrollo</option>
+                            <option value="Completada">Completada</option>
+                            <option value="Atrasada">Atrasada</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Fecha Inicio *</label>
+                        <input type="date" id="modalActStartDate" required class="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Fecha Fin *</label>
+                        <input type="date" id="modalActEndDate" required class="w-full p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">% Avance</label>
+                        <input type="number" min="0" max="100" id="modalActPercent" value="0" class="w-full p-2 rounded-lg border border-slate-300 font-bold text-center focus:ring-2 focus:ring-fet-green">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Observaciones</label>
+                    <textarea id="modalActObs" rows="2" placeholder="Comentarios adicionales..." class="w-full p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-fet-green"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="closeActivityModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 font-bold hover:bg-slate-100 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-fet-green text-white font-bold hover:bg-fet-darkgreen transition shadow-md">
+                        Guardar Actividad
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- INSTITUTIONAL FOOTER -->
+    <footer class="bg-gradient-to-r from-fet-darkgreen via-fet-green to-slate-900 text-white py-4 mt-auto shadow-inner border-t-2 border-fet-yellow">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs gap-3">
+            <div class="flex items-center gap-2">
+                <i data-lucide="map-pin" class="w-4 h-4 text-yellow-400"></i>
+                <span>Neiva - Huila - Colombia</span>
+                <span class="mx-1 text-slate-400">|</span>
+                <i data-lucide="globe" class="w-4 h-4 text-yellow-400"></i>
+                <a href="https://www.fet.edu.co" target="_blank" class="hover:underline font-semibold text-yellow-300">www.fet.edu.co</a>
+            </div>
+
+            <div class="italic text-slate-200 text-center">
+                "Formación tecnológica con calidad para un mejor futuro"
+            </div>
+
+            <div class="flex items-center gap-2 text-[11px] font-bold text-slate-300">
+                <span>Innovación</span>
+                <span>|</span>
+                <span>Educación</span>
+                <span>|</span>
+                <span>Desarrollo</span>
+                <span>|</span>
+                <span>Región</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- APPLICATION LOGIC & DATA SCRIPT -->
+    <script>
+        // Default Activity Dataset (Matching exact provided image and specifications)
+        let activities = [
+            {
+                id: 1,
+                name: "Preparación de sílabos por asignatura",
+                type: "Académica",
+                strat: "Docencia",
+                resp: "Docente",
+                startDate: "2026-08-01",
+                endDate: "2026-08-10",
+                percent: 100,
+                status: "Completada",
+                obs: "Sílabos cargados en el campus.",
+                avanceText: "Sílabos cargados en el campus virtual para todas las asignaturas asignadas.",
+                diffText: "Sin novedades relevantes.",
+                resText: "100% de la planificación del microcurrículo completada.",
+                nextText: "Iniciar la impartición de clases.",
+                nextDate: "2026-08-11"
+            },
+            {
+                id: 2,
+                name: "Inducción a estudiantes",
+                type: "Académica",
+                strat: "Docencia",
+                resp: "Docente",
+                startDate: "2026-08-03",
+                endDate: "2026-08-08",
+                percent: 100,
+                status: "Completada",
+                obs: "Realizada con éxito.",
+                avanceText: "Jornada de inducción desarrollada satisfactoriamente con asistencia completa.",
+                diffText: "Aforo limitado en el aula principal.",
+                resText: "Estudiantes orientados sobre el reglamento y sílabos.",
+                nextText: "Monitorear adaptación inicial.",
+                nextDate: "2026-08-15"
+            },
+            {
+                id: 3,
+                name: "Desarrollo de clases (Periodo 1)",
+                type: "Académica",
+                strat: "Docencia",
+                resp: "Docente",
+                startDate: "2026-08-10",
+                endDate: "2026-09-26",
+                percent: 70,
+                status: "En desarrollo",
+                obs: "Clases desarrolladas según cronograma.",
+                avanceText: "Avance temático del 70% cumplido según lo planificado.",
+                diffText: "Ajuste de horarios por actividades extracurriculares.",
+                resText: "Buen nivel de asistencia y participación estudiantil.",
+                nextText: "Preparación de evaluaciones parciales.",
+                nextDate: "2026-09-28"
+            },
+            {
+                id: 4,
+                name: "Aplicación de evaluación parcial 1",
+                type: "Académica",
+                strat: "Docencia",
+                resp: "Docente",
+                startDate: "2026-09-28",
+                endDate: "2026-09-30",
+                percent: 0,
+                status: "Pendiente",
+                obs: "Programada.",
+                avanceText: "Evaluación diseñada y lista para su aplicación.",
+                diffText: "Ninguna.",
+                resText: "Pendiente de aplicación.",
+                nextText: "Aplicar la prueba y calificar.",
+                nextDate: "2026-10-05"
+            },
+            {
+                id: 5,
+                name: "Revisión de anteproyectos de grado",
+                type: "Investigación",
+                strat: "Investigación",
+                resp: "Docente",
+                startDate: "2026-08-15",
+                endDate: "2026-08-30",
+                percent: 50,
+                status: "En desarrollo",
+                obs: "En revisión de documentos.",
+                avanceText: "50% de las propuestas revisadas con correcciones devueltas.",
+                diffText: "Retrasos menores en entrega por parte de estudiantes.",
+                resText: "Retroalimentaciones enviadas a los grupos.",
+                nextText: "Completar la revisión de la segunda tanda.",
+                nextDate: "2026-09-10"
+            },
+            {
+                id: 6,
+                name: "Entrega de sílabos",
+                type: "Académica",
+                strat: "Docencia",
+                resp: "Docente",
+                startDate: "2026-08-20",
+                endDate: "2026-08-25",
+                percent: 100,
+                status: "Completada",
+                obs: "Enviados a dirección de programa.",
+                avanceText: "Entrega formal completada a la jefatura académica.",
+                diffText: "Ninguna.",
+                resText: "Aprobación recibida.",
+                nextText: "Seguimiento periódico.",
+                nextDate: "2026-09-01"
+            },
+            {
+                id: 7,
+                name: "Revisión de anteproyectos",
+                type: "Investigación",
+                strat: "Investigación",
+                resp: "Docente",
+                startDate: "2026-08-25",
+                endDate: "2026-08-30",
+                percent: 100,
+                status: "Completada",
+                obs: "Dictámenes emitidos.",
+                avanceText: "Evaluación formal de anteproyectos terminada.",
+                diffText: "Ninguna.",
+                resText: "Proyectos viables aprobados.",
+                nextText: "Asignación de tutores.",
+                nextDate: "2026-09-05"
+            },
+            {
+                id: 8,
+                name: "Informe parcial de actividades",
+                type: "Administrativa",
+                strat: "Gestión académica",
+                resp: "Docente",
+                startDate: "2026-09-01",
+                endDate: "2026-09-05",
+                percent: 0,
+                status: "Pendiente",
+                obs: "Preparación de borrador.",
+                avanceText: "Recolección de evidencias iniciales.",
+                diffText: "Pendiente consolidar datos.",
+                resText: "En proceso de elaboración.",
+                nextText: "Finalizar el borrador y radicar.",
+                nextDate: "2026-09-12"
+            },
+            {
+                id: 9,
+                name: "Capacitación docente en pedagogía",
+                type: "Capacitación",
+                strat: "Desarrollo profesoral",
+                resp: "Coordinación",
+                startDate: "2026-09-10",
+                endDate: "2026-09-12",
+                percent: 80,
+                status: "En desarrollo",
+                obs: "Asistencia activa.",
+                avanceText: "Asistencia a 4 de los 5 módulos programados.",
+                diffText: "Coordinación con horarios lectivos.",
+                resText: "Certificación parcial obtenida.",
+                nextText: "Completar el último módulo evaluativo.",
+                nextDate: "2026-09-15"
+            },
+            {
+                id: 10,
+                name: "Cierre de actividades y entregas finales",
+                type: "Administrativa",
+                strat: "Gestión académica",
+                resp: "Docente",
+                startDate: "2026-12-01",
+                endDate: "2026-12-10",
+                percent: 0,
+                status: "Programada",
+                obs: "Por ejecutar al final del periodo.",
+                avanceText: "Actividad planificada para el cierre de semestre.",
+                diffText: "Ninguna.",
+                resText: "Pendiente.",
+                nextText: "Ejecución al término de clases.",
+                nextDate: "2026-12-01"
+            }
+        ];
+
+        // Fill remaining activities to reach 23 programadas total as shown in design
+        for (let i = 11; i <= 23; i++) {
+            let sampleType = ["Académica", "Investigación", "Proyección social", "Administrativa", "Capacitación"][i % 5];
+            let sampleStrat = ["Docencia", "Investigación", "Extensión", "Gestión académica", "Desarrollo profesoral"][i % 5];
+            activities.push({
+                id: i,
+                name: `Actividad institucional complementaria N° ${i}`,
+                type: sampleType,
+                strat: sampleStrat,
+                resp: i % 2 === 0 ? "Docente" : "Coordinación",
+                startDate: `2026-09-${(i % 15) + 10}`,
+                endDate: `2026-10-${(i % 15) + 10}`,
+                percent: i <= 15 ? 60 : (i === 23 ? 0 : 30),
+                status: i <= 15 ? "En desarrollo" : (i === 23 ? "Pendiente" : "En desarrollo"),
+                obs: "Planificada en el cronograma institucional.",
+                avanceText: "Proceso en ejecución continua con evidencias registradas.",
+                diffText: "Sin dificultades críticas.",
+                resText: "Cumpliendo metas periódicas.",
+                nextText: "Continuar según cronograma.",
+                nextDate: "2026-10-15"
+            });
+        }
+
+        // Calendar state
+        let currentCalDate = new Date(2026, 7, 1); // August 2026
+
+        // Chart instances
+        let chartGauge, chartEstado, chartTipo, chartLinea, chartWorkloadInst, chartTrendInst;
+
+        window.onload = function() {
+            lucide.createIcons();
+            initCharts();
+            populateQuickReportSelect();
+            populateReportDetailSelect();
+            renderDashboard();
+            renderFullPlanTable();
+            renderCalendar();
+            renderCustomReportTable();
+        };
+
+        // Tab Switching logic
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active'));
+            
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('tab-active');
+
+            if (tabName === 'indicadores') {
+                renderIndicadoresCharts();
+            }
+        }
+
+        // Period switcher
+        function updatePeriod(period) {
+            document.getElementById('headerPeriodText').innerText = period;
+            document.getElementById('dashTablePeriodLabel').innerText = period;
+            document.getElementById('repPeriodVal').innerText = period;
+        }
+
+        function renderDashboard() {
+            let total = activities.length;
+            let done = activities.filter(a => a.status === 'Completada').length;
+            let dev = activities.filter(a => a.status === 'En desarrollo').length;
+            let pend = activities.filter(a => a.status === 'Pendiente' || a.status === 'Programada').length;
+            let delay = activities.filter(a => a.status === 'Atrasada').length;
+
+            document.getElementById('dashProgCount').innerText = total;
+            document.getElementById('dashDevCount').innerText = dev;
+            document.getElementById('dashDoneCount').innerText = done;
+            document.getElementById('dashPendCount').innerText = pend;
+            document.getElementById('dashDelayCount').innerText = delay;
+
+            // Compute overall average percentage
+            let avgPercent = Math.round(activities.reduce((sum, a) => sum + Number(a.percent), 0) / total);
+            document.getElementById('dashOverallPercent').innerText = avgPercent + '%';
+
+            // Update Donut Gauge Chart
+            if (chartGauge) {
+                chartGauge.data.datasets[0].data = [avgPercent, 100 - avgPercent];
+                chartGauge.update();
+            }
+
+            // Update Bar chart for status
+            if (chartEstado) {
+                chartEstado.data.datasets[0].data = [done, dev, pend, delay];
+                chartEstado.update();
+            }
+
+            // Upcoming Activities Table (5 rows)
+            let upcomingBody = document.getElementById('upcomingTableBody');
+            upcomingBody.innerHTML = '';
+            
+            let upcomingList = [
+                { date: '25/08/2026', title: 'Entrega de sílabos', status: 'En desarrollo' },
+                { date: '30/08/2026', title: 'Revisión de anteproyectos', status: 'En desarrollo' },
+                { date: '05/09/2026', title: 'Informe parcial', status: 'Pendiente' },
+                { date: '12/09/2026', title: 'Capacitación docente', status: 'Pendiente' },
+                { date: '20/09/2026', title: 'Cierre de actividades', status: 'Programada' }
+            ];
+
+            upcomingList.forEach(item => {
+                let badgeClass = getStatusBadgeClass(item.status);
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+                tr.innerHTML = `
+                    <td class="p-1.5 font-medium text-slate-600">${item.date}</td>
+                    <td class="p-1.5 font-semibold text-slate-800">${item.title}</td>
+                    <td class="p-1.5 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">${item.status}</span></td>
+                `;
+                upcomingBody.appendChild(tr);
+            });
+
+            // Dashboard Plan Table Preview
+            let dashTableBody = document.getElementById('dashboardPlanTableBody');
+            dashTableBody.innerHTML = '';
+            
+            // Render first 5 activities
+            activities.slice(0, 5).forEach(act => {
+                let badgeClass = getStatusBadgeClass(act.status);
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="py-2 px-3 text-center font-bold text-slate-600">${act.id}</td>
+                    <td class="py-2 px-3 font-semibold text-slate-800">${act.name}</td>
+                    <td class="py-2 px-3 text-slate-600">${act.type}</td>
+                    <td class="py-2 px-3 text-slate-600">${act.resp}</td>
+                    <td class="py-2 px-3 text-slate-500">${formatDate(act.startDate)}</td>
+                    <td class="py-2 px-3 text-slate-500">${formatDate(act.endDate)}</td>
+                    <td class="py-2 px-3 text-center">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                <div class="bg-fet-green h-full" style="width: ${act.percent}%;"></div>
+                            </div>
+                            <span class="font-bold text-[11px] text-slate-700">${act.percent}%</span>
+                        </div>
+                    </td>
+                    <td class="py-2 px-3 text-center">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">${act.status}</span>
+                    </td>
+                    <td class="py-2 px-3 text-slate-500 italic max-w-xs truncate">${act.obs || '-'}</td>
+                `;
+                dashTableBody.appendChild(tr);
+            });
+
+            // Append last activity #23 to match screenshot format
+            let lastAct = activities[activities.length - 1];
+            let lastTr = document.createElement('tr');
+            lastTr.className = "bg-slate-50/50 hover:bg-slate-100 transition";
+            lastTr.innerHTML = `
+                <td class="py-2 px-3 text-center font-bold text-slate-600">${lastAct.id}</td>
+                <td class="py-2 px-3 font-semibold text-slate-800">${lastAct.name}</td>
+                <td class="py-2 px-3 text-slate-600">${lastAct.type}</td>
+                <td class="py-2 px-3 text-slate-600">${lastAct.resp}</td>
+                <td class="py-2 px-3 text-slate-500">${formatDate(lastAct.startDate)}</td>
+                <td class="py-2 px-3 text-slate-500">${formatDate(lastAct.endDate)}</td>
+                <td class="py-2 px-3 text-center">
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div class="bg-fet-green h-full" style="width: ${lastAct.percent}%;"></div>
+                        </div>
+                        <span class="font-bold text-[11px] text-slate-700">${lastAct.percent}%</span>
+                    </div>
+                </td>
+                <td class="py-2 px-3 text-center">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass(lastAct.status)}">${lastAct.status}</span>
+                </td>
+                <td class="py-2 px-3 text-slate-500 italic">${lastAct.obs || '-'}</td>
+            `;
+            dashTableBody.appendChild(lastTr);
+        }
+
+        function initCharts() {
+            // Gauge chart in top right KPI
+            let ctxGauge = document.getElementById('dashOverallGauge').getContext('2d');
+            chartGauge = new Chart(ctxGauge, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [65, 35],
+                        backgroundColor: ['#005C29', '#e2e8f0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '78%',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { tooltip: { enabled: false }, legend: { display: false } }
+                }
+            });
+
+            // 1. Estado de las actividades Bar Chart
+            let ctxEstado = document.getElementById('chartEstadoActividades').getContext('2d');
+            chartEstado = new Chart(ctxEstado, {
+                type: 'bar',
+                data: {
+                    labels: ['Completadas', 'En desarrollo', 'Pendientes', 'Atrasadas'],
+                    datasets: [{
+                        data: [6, 15, 2, 0],
+                        backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#f43f5e'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 5 } } }
+                }
+            });
+
+            // 2. Tipo de Actividad Donut Chart
+            let ctxTipo = document.getElementById('chartTipoActividad').getContext('2d');
+            chartTipo = new Chart(ctxTipo, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Académica', 'Investigación', 'Administrativa', 'Proyección social', 'Capacitación'],
+                    datasets: [{
+                        data: [35, 26, 17, 13, 9],
+                        backgroundColor: ['#005C29', '#0284c7', '#84cc16', '#eab308', '#64748b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }
+                }
+            });
+
+            // 3. Avance por línea estratégica Horizontal Bar
+            let ctxLinea = document.getElementById('chartLineaEstrategica').getContext('2d');
+            chartLinea = new Chart(ctxLinea, {
+                type: 'bar',
+                data: {
+                    labels: ['Docencia', 'Investigación', 'Extensión', 'Gestión académica', 'Desarrollo profesoral'],
+                    datasets: [{
+                        data: [80, 60, 50, 70, 65],
+                        backgroundColor: '#005C29',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { max: 100, ticks: { callback: v => v + '%' } } }
+                }
+            });
+        }
+
+        // Render additional Indicadores tab charts
+        function renderIndicadoresCharts() {
+            if (!chartWorkloadInst) {
+                let ctxWork = document.getElementById('chartWorkload').getContext('2d');
+                chartWorkloadInst = new Chart(ctxWork, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Docente', 'Coordinación', 'Dirección de Programa'],
+                        datasets: [{
+                            data: [16, 5, 2],
+                            backgroundColor: ['#005C29', '#EDBB00', '#0284c7']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            if (!chartTrendInst) {
+                let ctxTrend = document.getElementById('chartTrend').getContext('2d');
+                chartTrendInst = new Chart(ctxTrend, {
+                    type: 'line',
+                    data: {
+                        labels: ['Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                        datasets: [{
+                            label: '% Avance Proyectado vs Real',
+                            data: [20, 45, 65, 85, 100],
+                            borderColor: '#005C29',
+                            backgroundColor: 'rgba(0, 92, 41, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+
+        function renderFullPlanTable() {
+            let tbody = document.getElementById('fullPlanTableBody');
+            tbody.innerHTML = '';
+
+            let search = document.getElementById('searchPlanInput').value.toLowerCase();
+            let filterType = document.getElementById('filterType').value;
+            let filterStatus = document.getElementById('filterStatus').value;
+
+            let filtered = activities.filter(act => {
+                let matchesSearch = act.name.toLowerCase().includes(search) || act.resp.toLowerCase().includes(search);
+                let matchesType = filterType === 'ALL' || act.type === filterType;
+                let matchesStatus = filterStatus === 'ALL' || act.status === filterStatus;
+                return matchesSearch && matchesType && matchesStatus;
+            });
+
+            filtered.forEach((act, index) => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                let badgeClass = getStatusBadgeClass(act.status);
+
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 text-center font-bold text-slate-600 border-r border-slate-100">${act.id}</td>
+                    <td class="py-2.5 px-3 font-semibold text-slate-800 border-r border-slate-100">${act.name}</td>
+                    <td class="py-2.5 px-3 text-slate-600 border-r border-slate-100">${act.strat || 'Docencia'}</td>
+                    <td class="py-2.5 px-3 text-slate-600 border-r border-slate-100">${act.type}</td>
+                    <td class="py-2.5 px-3 text-slate-600 border-r border-slate-100">${act.resp}</td>
+                    <td class="py-2.5 px-3 text-slate-500 border-r border-slate-100">${formatDate(act.startDate)}</td>
+                    <td class="py-2.5 px-3 text-slate-500 border-r border-slate-100">${formatDate(act.endDate)}</td>
+                    <td class="py-2.5 px-3 border-r border-slate-100 text-center">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                <div class="bg-fet-green h-full" style="width: ${act.percent}%;"></div>
+                            </div>
+                            <span class="font-bold text-[11px] text-slate-700">${act.percent}%</span>
+                        </div>
+                    </td>
+                    <td class="py-2.5 px-3 text-center border-r border-slate-100">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">${act.status}</span>
+                    </td>
+                    <td class="py-2.5 px-3 text-slate-500 italic max-w-xs truncate border-r border-slate-100">${act.obs || '-'}</td>
+                    <td class="py-2.5 px-3 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editActivity(${act.id})" title="Editar" class="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteActivity(${act.id})" title="Eliminar" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+        }
+
+        function populateQuickReportSelect() {
+            let select = document.getElementById('quickReportActId');
+            select.innerHTML = '';
+            activities.forEach(act => {
+                let opt = document.createElement('option');
+                opt.value = act.id;
+                opt.innerText = `${act.id} - ${act.name}`;
+                select.appendChild(opt);
+            });
+
+            if (activities.length > 0) {
+                // Default select #3 as shown in provided image
+                let defaultAct = activities.find(a => a.id === 3) || activities[0];
+                select.value = defaultAct.id;
+                autoFillQuickReport(defaultAct.id);
+            }
+        }
+
+        function autoFillQuickReport(actId) {
+            let act = activities.find(a => a.id == actId);
+            if (!act) return;
+
+            document.getElementById('quickReportTitle').value = act.name;
+            document.getElementById('quickReportResponsible').value = act.resp;
+            document.getElementById('quickReportAvanceText').value = act.avanceText || '';
+            document.getElementById('quickReportDiffText').value = act.diffText || '';
+            document.getElementById('quickReportResText').value = act.resText || '';
+            document.getElementById('quickReportNextText').value = act.nextText || '';
+            document.getElementById('quickReportPercent').value = act.percent;
+            document.getElementById('quickReportStatus').value = act.status;
+            document.getElementById('quickReportNextDate').value = act.nextDate || '';
+            document.getElementById('quickReportDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        function saveQuickReport() {
+            let actId = document.getElementById('quickReportActId').value;
+            let act = activities.find(a => a.id == actId);
+            if (!act) return;
+
+            act.avanceText = document.getElementById('quickReportAvanceText').value;
+            act.diffText = document.getElementById('quickReportDiffText').value;
+            act.resText = document.getElementById('quickReportResText').value;
+            act.nextText = document.getElementById('quickReportNextText').value;
+            act.percent = Number(document.getElementById('quickReportPercent').value);
+            act.status = document.getElementById('quickReportStatus').value;
+            act.nextDate = document.getElementById('quickReportNextDate').value;
+
+            renderDashboard();
+            renderFullPlanTable();
+
+            // Custom non-blocking notification
+            showNotification("Informe de avance guardado con éxito para la actividad #" + actId);
+        }
+
+        function populateReportDetailSelect() {
+            let select = document.getElementById('reportDetailActSelect');
+            select.innerHTML = '';
+            activities.forEach(act => {
+                let opt = document.createElement('option');
+                opt.value = act.id;
+                opt.innerText = `Actividad #${act.id}: ${act.name} (${act.status})`;
+                select.appendChild(opt);
+            });
+            if (activities.length > 0) {
+                loadReportDetailView(activities[0].id);
+            }
+        }
+
+        function loadReportDetailView(actId) {
+            let act = activities.find(a => a.id == actId);
+            if (!act) return;
+
+            document.getElementById('repActNum').innerText = `#${act.id}`;
+            document.getElementById('repActType').innerText = act.type;
+            document.getElementById('repActResp').innerText = act.resp;
+            document.getElementById('repActStatus').innerText = act.status;
+            document.getElementById('repActTitle').innerText = act.name;
+
+            document.getElementById('repTextAvance').innerText = act.avanceText || 'Sin información consignada.';
+            document.getElementById('repTextDiff').innerText = act.diffText || 'Sin dificultades reportadas.';
+            document.getElementById('repTextRes').innerText = act.resText || 'Resultados en proceso.';
+            document.getElementById('repTextNext').innerText = act.nextText || 'Continuar ejecución según cronograma.';
+
+            document.getElementById('repPercentVal').innerText = act.percent + '%';
+            document.getElementById('repLastDateVal').innerText = formatDate(act.startDate);
+            document.getElementById('repNextDateVal').innerText = act.nextDate ? formatDate(act.nextDate) : 'N/A';
+        }
+
+        function changeCalendarMonth(delta) {
+            currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            let monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            let year = currentCalDate.getFullYear();
+            let month = currentCalDate.getMonth();
+
+            document.getElementById('calendarMonthYearLabel').innerText = `${monthNames[month]} ${year}`;
+
+            let grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            let firstDay = new Date(year, month, 1).getDay();
+            let daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Blank slots for previous month
+            for (let i = 0; i < firstDay; i++) {
+                let emptyCell = document.createElement('div');
+                emptyCell.className = "bg-slate-100/50 min-h-[90px] rounded p-1";
+                grid.appendChild(emptyCell);
+            }
+
+            // Days cells
+            for (let day = 1; day <= daysInMonth; day++) {
+                let dayCell = document.createElement('div');
+                dayCell.className = "bg-white min-h-[90px] rounded p-1.5 shadow-sm border border-slate-100 flex flex-col justify-between";
+                
+                let dayNum = document.createElement('span');
+                dayNum.className = "font-extrabold text-slate-700 text-xs";
+                dayNum.innerText = day;
+                dayCell.appendChild(dayNum);
+
+                let dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                // Find activities happening on date
+                let dayEvts = activities.filter(a => a.startDate <= dateStr && a.endDate >= dateStr);
+                
+                let evtContainer = document.createElement('div');
+                evtContainer.className = "space-y-1 mt-1 overflow-y-auto max-h-[60px]";
+
+                dayEvts.forEach(evt => {
+                    let badge = document.createElement('div');
+                    let colorBg = evt.status === 'Completada' ? 'bg-emerald-500' : (evt.status === 'En desarrollo' ? 'bg-blue-500' : 'bg-amber-500');
+                    badge.className = `${colorBg} text-white font-bold text-[9px] px-1.5 py-0.5 rounded truncate shadow-xs cursor-pointer`;
+                    badge.innerText = `#${evt.id} ${evt.name}`;
+                    badge.title = `${evt.name} (${evt.status})`;
+                    badge.onclick = () => { switchTab('plan'); };
+                    evtContainer.appendChild(badge);
+                });
+
+                dayCell.appendChild(evtContainer);
+                grid.appendChild(dayCell);
+            }
+        }
+
+        function generateCustomReport() {
+            renderCustomReportTable();
+            showNotification("Reporte generado de acuerdo con los criterios seleccionados.");
+        }
+
+        function renderCustomReportTable() {
+            let tbody = document.getElementById('customReportTableBody');
+            tbody.innerHTML = '';
+
+            let respFilter = document.getElementById('reportGenResp').value;
+            let statusFilter = document.getElementById('reportGenStatus').value;
+
+            let filtered = activities.filter(a => {
+                let matchR = respFilter === 'ALL' || a.resp === respFilter;
+                let matchS = statusFilter === 'ALL' || a.status === statusFilter;
+                return matchR && matchS;
+            });
+
+            filtered.forEach(act => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center font-bold">${act.id}</td>
+                    <td class="p-2.5 font-medium text-slate-800">${act.name}</td>
+                    <td class="p-2.5 text-slate-600">${act.type}</td>
+                    <td class="p-2.5 text-slate-600">${act.resp}</td>
+                    <td class="p-2.5 text-center font-bold text-fet-green">${act.percent}%</td>
+                    <td class="p-2.5 text-center">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass(act.status)}">${act.status}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openActivityModal() {
+            document.getElementById('modalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5"></i> Registrar Nueva Actividad`;
+            document.getElementById('modalActIndex').value = -1;
+            document.getElementById('activityForm').reset();
+            document.getElementById('activityModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeActivityModal() {
+            document.getElementById('activityModal').classList.add('hidden');
+        }
+
+        function editActivity(actId) {
+            let act = activities.find(a => a.id === actId);
+            if (!act) return;
+
+            document.getElementById('modalTitle').innerHTML = `<i data-lucide="edit-3" class="w-5 h-5"></i> Editar Actividad #${act.id}`;
+            document.getElementById('modalActIndex').value = act.id;
+            document.getElementById('modalActName').value = act.name;
+            document.getElementById('modalActType').value = act.type;
+            document.getElementById('modalActStrat').value = act.strat || 'Docencia';
+            document.getElementById('modalActResp').value = act.resp;
+            document.getElementById('modalActStatus').value = act.status;
+            document.getElementById('modalActStartDate').value = act.startDate;
+            document.getElementById('modalActEndDate').value = act.endDate;
+            document.getElementById('modalActPercent').value = act.percent;
+            document.getElementById('modalActObs').value = act.obs || '';
+
+            document.getElementById('activityModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function handleSaveActivity(e) {
+            e.preventDefault();
+            let actId = Number(document.getElementById('modalActIndex').value);
+
+            let actData = {
+                name: document.getElementById('modalActName').value,
+                type: document.getElementById('modalActType').value,
+                strat: document.getElementById('modalActStrat').value,
+                resp: document.getElementById('modalActResp').value,
+                status: document.getElementById('modalActStatus').value,
+                startDate: document.getElementById('modalActStartDate').value,
+                endDate: document.getElementById('modalActEndDate').value,
+                percent: Number(document.getElementById('modalActPercent').value),
+                obs: document.getElementById('modalActObs').value
+            };
+
+            if (actId === -1) {
+                let newId = activities.length > 0 ? Math.max(...activities.map(a => a.id)) + 1 : 1;
+                actData.id = newId;
+                actData.avanceText = "Actividad recién creada.";
+                activities.push(actData);
+                showNotification(`Actividad #${newId} agregada exitosamente.`);
+            } else {
+                let idx = activities.findIndex(a => a.id === actId);
+                if (idx !== -1) {
+                    activities[idx] = { ...activities[idx], ...actData };
+                    showNotification(`Actividad #${actId} actualizada exitosamente.`);
+                }
+            }
+
+            closeActivityModal();
+            renderDashboard();
+            renderFullPlanTable();
+            populateQuickReportSelect();
+            populateReportDetailSelect();
+            renderCalendar();
+            renderCustomReportTable();
+        }
+
+        function deleteActivity(actId) {
+            activities = activities.filter(a => a.id !== actId);
+            renderDashboard();
+            renderFullPlanTable();
+            populateQuickReportSelect();
+            populateReportDetailSelect();
+            renderCalendar();
+            showNotification(`Actividad #${actId} eliminada.`);
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'Completada': return 'bg-emerald-100 text-emerald-800 border border-emerald-300';
+                case 'En desarrollo': return 'bg-blue-100 text-blue-800 border border-blue-300';
+                case 'Pendiente': return 'bg-amber-100 text-amber-800 border border-amber-300';
+                case 'Programada': return 'bg-slate-100 text-slate-700 border border-slate-300';
+                case 'Atrasada': return 'bg-rose-100 text-rose-800 border border-rose-300';
+                default: return 'bg-slate-100 text-slate-600';
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            let parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function exportPlanCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,N°,Actividad,Tipo,Responsable,Fecha Inicio,Fecha Fin,% Avance,Estado,Observaciones\n";
+            activities.forEach(a => {
+                csvContent += `"${a.id}","${a.name}","${a.type}","${a.resp}","${a.startDate}","${a.endDate}","${a.percent}%","${a.status}","${a.obs || ''}"\n`;
+            });
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Plan_de_Actividades_FET_2026.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportReportCSV() {
+            exportPlanCSV();
+        }
+
+        function showNotification(msg) {
+            let toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white font-semibold text-xs px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2 border border-slate-700 animate-bounce';
+            toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> ${msg}`;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
